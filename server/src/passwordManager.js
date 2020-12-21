@@ -5,7 +5,7 @@ class PasswordManager {
     return await bcrypt.compare(input, password);
   };
 
-  hashPassowrd = async (password) => {
+  hashPassword = async (password) => {
     return await bcrypt.hash(password, 10);
   };
 }

@@ -40,6 +40,11 @@ const typeDefs = gql`
     author: User!
   }
 
+  enum OnlineStatus {
+    ONLINE
+    OFFLINE
+  }
+
   type Query {
     users: [User!]!
     onlineUsers: [User!]!
@@ -95,6 +100,11 @@ const typeDefs = gql`
     newUser: User!
   }
 
+  type UserOnlineStatusEvent {
+    user: User!
+    status: OnlineStatus!
+  }
+
   type Mutation {
     register(input: RegisterInput!): RegisterPayload!
     login(input: LoginInput!): LoginPayload!
@@ -105,10 +115,12 @@ const typeDefs = gql`
 
   type Subscription {
     onMessage(chatId: ID!): Message!
+    onUserOnlineStatus: UserOnlineStatusEvent!
   }
 `;
 
 const ON_MESSAGE = "ON_MESSAGE";
+const ON_USER_ONLINE_STATUS = "ON_USER_ONLINE_STATUS";
 
 const pubsub = new PubSub();
 
@@ -299,6 +311,9 @@ const resolvers = {
         (payload, { chatId }) => payload.chatId === chatId
       ),
     },
+    onUserOnlineStatus: {
+      subscribe: () => pubsub.asyncIterator(ON_USER_ONLINE_STATUS),
+    },
   },
 };
 
@@ -339,6 +354,13 @@ const server = new ApolloServer({
         const userManager = app.get("userManager");
         userManager.userOnline(user);
 
+        pubsub.publish(ON_USER_ONLINE_STATUS, {
+          onUserOnlineStatus: {
+            user,
+            status: "ONLINE",
+          },
+        });
+
         if (process.env.NODE_ENV === "development") {
           console.log(`Websocket connection by ${user.username}.`);
         }
@@ -351,6 +373,13 @@ const server = new ApolloServer({
       if (user) {
         const userManager = app.get("userManager");
         userManager.userOffline(user);
+
+        pubsub.publish(ON_USER_ONLINE_STATUS, {
+          onUserOnlineStatus: {
+            user,
+            status: "OFFLINE",
+          },
+        });
 
         if (process.env.NODE_ENV === "development") {
           console.log(`Websocket disconnect by ${user.username}.`);

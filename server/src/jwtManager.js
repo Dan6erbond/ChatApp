@@ -5,8 +5,8 @@ class JwtManager {
     this.jwtKey = jwtKey;
   }
 
-  signUser = ({ id, username, email }) => {
-    return jwt.sign({ id, username, email }, this.jwtKey, {
+  signUser = ({ id, username }) => {
+    return jwt.sign({ id, username }, this.jwtKey, {
       expiresIn: 60 * 60 * 60 * 24 * 365,
     });
   };

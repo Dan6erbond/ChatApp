@@ -142,6 +142,19 @@ const resolvers = {
       return null;
     },
   }),
+  User: {
+    chats: async (user) => {
+      return await db
+        .select()
+        .from("chats")
+        .whereExists(function () {
+          this.select()
+            .from("chats_users")
+            .whereRaw("chats_users.chat_id = chats.id")
+            .where("user_id", user.id);
+        });
+    },
+  },
   Query: {
     messages: async (_, { chatId }, { user }, info) => {
       const query = db

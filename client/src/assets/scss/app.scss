@@ -26,3 +26,11 @@ $colors: map-merge($colors, $addColors);
 @import "~buefy/src/scss/buefy";
 
 // 4. Provide custom buefy overrides and site styles here
+
+.is-pointer {
+  cursor: pointer;
+}
+
+.w-100 {
+  width: 100%;
+}

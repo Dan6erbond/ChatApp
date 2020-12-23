@@ -1,7 +1,7 @@
 <template>
   <div class="home container">
+    <h2 class="has-text-centered is-size-1">Log In</h2>
     <section>
-      <h2>Log In</h2>
       <br />
       <form @submit.prevent="login" class="login-form">
         <b-field label="Username">
@@ -15,17 +15,17 @@
             v-model="password"
           ></b-input>
         </b-field>
-        <b-button class="button is-primary" native-type="submit"
-          >Log In</b-button
-        >
+        <b-button class="button is-primary" native-type="submit">
+          Log In
+        </b-button>
       </form>
     </section>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
 import gql from "graphql-tag";
+import { mapMutations } from "vuex";
 
 export default {
   name: "Home",
@@ -75,8 +75,30 @@ export default {
     },
   },
   methods: {
-    login() {
-      console.log(this.username, this.password);
+    ...mapMutations(["setUser"]),
+    async login() {
+      const { data } = await this.$apollo.mutate({
+        mutation: gql`
+          mutation Login($input: LoginInput!) {
+            login(input: $input) {
+              user {
+                id
+                username
+              }
+              token
+            }
+          }
+        `,
+        variables: {
+          input: {
+            username: this.username,
+            password: this.password,
+          },
+        },
+      });
+      localStorage.setItem("token", data.login.token);
+      this.setUser({ user: data.login.user });
+      this.$router.push("/chats");
     },
   },
 };

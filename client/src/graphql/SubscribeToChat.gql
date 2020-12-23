@@ -1,0 +1,11 @@
+subscription SubscribeToChat($chatId: ID!) {
+  onMessage(chatId: $chatId) {
+    id
+    body
+    sentAt
+    author {
+      id
+      username
+    }
+  }
+}

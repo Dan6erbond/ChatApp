@@ -1,0 +1,13 @@
+mutation SendMessage($input: MessageInput!) {
+  message(input: $input) {
+    message {
+      id
+      body
+      sentAt
+      author {
+        id
+        username
+      }
+    }
+  }
+}

@@ -155,6 +155,23 @@ const resolvers = {
         });
     },
   },
+  Chat: {
+    users: async (chat) => {
+      return await db
+        .select()
+        .from("chats_users")
+        .where("chat_id", chat.id)
+        .join("users", "users.id", "chats_users.user_id");
+    },
+    messages: async (chat) => {
+      const messages = await db
+        .select()
+        .from("messages")
+        .where("chat_id", chat.id)
+        .orderBy("sent_at");
+      return messages.map((o) => ({ ...o, sentAt: new Date(o.sent_at) }));
+    },
+  },
   Query: {
     messages: async (_, { chatId }, { user }, info) => {
       const query = db

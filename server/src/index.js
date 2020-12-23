@@ -183,8 +183,15 @@ const resolvers = {
     },
   },
   Query: {
-    messages: async (_, { chatId }, { user }, info) => {
-      const query = db
+    me: async (_, __, { user }) => {
+      return await db
+        .select()
+        .from("users")
+        .whereRaw("LOWER(username) = ?", user.username.toLowerCase())
+        .first();
+    },
+    messages: async (_, { chatId }) => {
+      const messages = await db
         .select({
           id: "id",
           body: "body",
@@ -192,15 +199,8 @@ const resolvers = {
         })
         .from("messages")
         .where("chat_id", chatId)
-        .whereExists(function () {
-          this.select()
-            .from("chats_users")
-            .whereRaw("chats_users.chat_id = messages.chat_id")
-            .where("user_id", user.id);
-        });
-
-      const messages = await query;
-      return messages.map((o) => ({ ...o, sentAt: new Date(o.sentAt) }));
+        .orderBy("sent_at");
+      return messages.map((o) => ({ ...o, sentAt: new Date(o.sent_at) }));
     },
     chats: async (_, __, { user }) => {
       return await db

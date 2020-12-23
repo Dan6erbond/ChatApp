@@ -173,6 +173,22 @@ const resolvers = {
         .orderBy("sent_at");
       return messages.map((o) => ({ ...o, sentAt: new Date(o.sent_at) }));
     },
+    name: async (chat, _, { user }) => {
+      if (chat.name) {
+        return chat.name;
+      }
+      const users = await db
+        .select()
+        .from("chats_users")
+        .where("chat_id", chat.id)
+        .where("user_id", "!=", user.id)
+        .leftJoin("users", "chats_users.user_id", "users.id");
+      if (users.length > 1) {
+        return `${users[0].username} and ${users.length - 1} more`;
+      } else {
+        return users[0].username;
+      }
+    },
   },
   Message: {
     author: async (message) => {

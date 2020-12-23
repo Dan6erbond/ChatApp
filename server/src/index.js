@@ -215,6 +215,9 @@ const resolvers = {
             .where("user_id", user.id);
         });
     },
+    chat: async (_, { id }) => {
+      return await db.select().from("chats").where("id", id).first();
+    },
     onlineUsers: (_, __, { userManager }) => {
       return userManager.onlineUsers;
     },

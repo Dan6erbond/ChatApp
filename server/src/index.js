@@ -270,6 +270,8 @@ const resolvers = {
       }
     },
     message: async (_, { input }, { user }) => {
+      if (!input.body) return;
+
       const chatExists = await db
         .select()
         .from("chats")
@@ -282,14 +284,15 @@ const resolvers = {
         let message = {
           ...input,
           sentAt,
+          author_id: user.id,
         };
 
         const [id] = await db
           .insert(
             {
               body: input.body,
-              author_id: user.id,
               chat_id: input.chatId,
+              author_id: user.id,
               sent_at: sentAt,
             },
             ["id"]
@@ -301,6 +304,7 @@ const resolvers = {
         pubsub.publish(ON_MESSAGE, {
           onMessage: message,
           chatId: input.chatId,
+          userId: user.id,
         });
 
         return { message };
@@ -354,7 +358,8 @@ const resolvers = {
             return pubsub.asyncIterator(ON_MESSAGE);
           }
         },
-        (payload, { chatId }) => payload.chatId === chatId
+        (payload, { chatId }, { user }) =>
+          payload.chatId === chatId && payload.userId !== user.id
       ),
     },
     onUserOnlineStatus: {

@@ -1,18 +1,90 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div class="home container">
+    <section>
+      <h2>Log In</h2>
+      <br />
+      <form @submit.prevent="login" class="login-form">
+        <b-field label="Username">
+          <b-input placeholder="Username" v-model="username"></b-input>
+        </b-field>
+        <b-field label="Password">
+          <b-input
+            type="password"
+            password-reveal
+            placeholder="Password"
+            v-model="password"
+          ></b-input>
+        </b-field>
+        <b-button class="button is-primary" native-type="submit"
+          >Log In</b-button
+        >
+      </form>
+    </section>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import gql from "graphql-tag";
 
 export default {
   name: "Home",
-  components: {
-    HelloWorld
-  }
+  data() {
+    return {
+      username: "",
+      password: "",
+      messages: [],
+      onlineUsers: [],
+    };
+  },
+  apollo: {
+    messages: gql`
+      query GetMessages {
+        messages(chatId: 10) {
+          id
+          body
+          sentAt
+        }
+      }
+    `,
+    onlineUsers: gql`
+      query GetOnlineUsers {
+        onlineUsers {
+          id
+          username
+        }
+      }
+    `,
+    $subscribe: {
+      onUserOnlineStatus: {
+        query: gql`
+          subscription OnUserOnlineStatus {
+            onUserOnlineStatus {
+              user {
+                id
+                username
+              }
+              status
+            }
+          }
+        `,
+        result({ data }) {
+          console.log(data.onUserOnlineStatus);
+        },
+      },
+    },
+  },
+  methods: {
+    login() {
+      console.log(this.username, this.password);
+    },
+  },
 };
 </script>
+
+<style lang="scss" scoped>
+.login-form {
+  margin: 0 auto;
+  max-width: 350px;
+}
+</style>

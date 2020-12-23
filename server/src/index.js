@@ -250,7 +250,7 @@ const resolvers = {
       const dbUser = await db
         .select()
         .from("users")
-        .where("username", input.username)
+        .whereRaw("LOWER(username) = ?", input.username.toLowerCase())
         .first();
       const match = await passwordManager.comparePassword(
         input.password,

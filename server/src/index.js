@@ -172,6 +172,16 @@ const resolvers = {
       return messages.map((o) => ({ ...o, sentAt: new Date(o.sent_at) }));
     },
   },
+  Message: {
+    author: async (message) => {
+      const author = await db
+        .select()
+        .from("users")
+        .where("id", message.author_id)
+        .first();
+      return author;
+    },
+  },
   Query: {
     messages: async (_, { chatId }, { user }, info) => {
       const query = db

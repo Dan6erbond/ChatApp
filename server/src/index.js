@@ -48,8 +48,10 @@ const typeDefs = gql`
 
   type Query {
     users: [User!]!
+    me: User
     onlineUsers: [User!]!
     chats: [Chat!]!
+    chat(id: ID!): Chat
     messages(chatId: ID!): [Message!]
   }
 

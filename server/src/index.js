@@ -30,6 +30,7 @@ const typeDefs = gql`
     id: ID!
     name: String
     users: [User!]!
+    messages: [Message!]!
   }
 
   type Message {

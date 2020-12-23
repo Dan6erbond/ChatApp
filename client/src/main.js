@@ -1,12 +1,21 @@
-// import Buefy from "buefy";
-import { createApp } from "vue";
+import Buefy from "buefy";
+import Vue from "vue";
+import VueApollo from "vue-apollo";
+import "vue-material-design-icons/styles.css";
 import App from "./App.vue";
 import "./assets/scss/app.scss";
 import router from "./router";
 import store from "./store";
+import { apolloProvider } from "./vue-apollo";
 
-createApp(App)
-  .use(store)
-  .use(router)
-  // .use(Buefy)
-  .mount("#app");
+Vue.use(Buefy);
+Vue.use(VueApollo);
+
+Vue.config.productionTip = false;
+
+new Vue({
+  router,
+  store,
+  apolloProvider,
+  render: h => h(App),
+}).$mount("#app");

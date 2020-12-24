@@ -52,6 +52,7 @@
             </p>
           </b-field>
         </form>
+        <p>Dan6erbond is typing...</p>
       </section>
     </div>
   </div>
@@ -63,6 +64,7 @@ import { mapState } from "vuex";
 import GET_CHAT from "@/graphql/GetChat.gql";
 import SEND_MESSAGE from "@/graphql/SendMessage.gql";
 import SUBSCRIBE_TO_CHAT from "@/graphql/SubscribeToChat.gql";
+import SUBSCRIBE_TO_TYPING from "@/graphql/SubscribeToTyping.gql";
 
 export default {
   name: "Chat",
@@ -73,6 +75,7 @@ export default {
     return {
       msgInput: "",
       chat: null,
+      usersTyping: [],
     };
   },
   computed: {

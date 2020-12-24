@@ -24,6 +24,7 @@ const typeDefs = gql`
     id: ID!
     username: String!
     chats: [Chat!]!
+    status: OnlineStatus!
   }
 
   type Chat {
@@ -49,7 +50,6 @@ const typeDefs = gql`
   type Query {
     users: [User!]!
     me: User
-    onlineUsers: [User!]!
     chats: [Chat!]!
     chat(id: ID!): Chat
     messages(chatId: ID!): [Message!]
@@ -168,6 +168,12 @@ const resolvers = {
             .where("user_id", user.id);
         });
     },
+    status: (user, _, { userManager }) => {
+      if (userManager.onlineUsers.find((u) => u.id === user.id)) {
+        return "ONLINE";
+      }
+      return "OFFLINE";
+    },
   },
   Chat: {
     users: async (chat) => {
@@ -247,8 +253,8 @@ const resolvers = {
     chat: async (_, { id }) => {
       return await db.select().from("chats").where("id", id).first();
     },
-    onlineUsers: (_, __, { userManager }) => {
-      return userManager.onlineUsers;
+    users: async () => {
+      return await db.select().from("users");
     },
   },
   Mutation: {

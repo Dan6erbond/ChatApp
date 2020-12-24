@@ -1,0 +1,8 @@
+subscription SubscribeToTyping($chatId: ID!) {
+  onUserTyping(chatId: $chatId) {
+    user {
+      id
+      username
+    }
+  }
+}

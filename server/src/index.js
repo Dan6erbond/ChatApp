@@ -128,7 +128,7 @@ const typeDefs = gql`
 
   type Subscription {
     onMessage(chatId: ID!): Message!
-    onUserOnlineStatus: UserOnlineStatusEvent!
+    onUserOnlineStatus(userId: ID): UserOnlineStatusEvent!
     onUserTyping(chatId: ID!): UserTypingEvent!
   }
 `;
@@ -410,7 +410,15 @@ const resolvers = {
       ),
     },
     onUserOnlineStatus: {
-      subscribe: () => pubsub.asyncIterator(ON_USER_ONLINE_STATUS),
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(ON_USER_ONLINE_STATUS),
+        (payload, { userId }, { user }) => {
+          if (userId) {
+            return payload.userId === userId && payload.userId !== user.id;
+          }
+          return payload.userId !== user.id;
+        }
+      ),
     },
     onUserTyping: {
       subscribe: withFilter(
@@ -471,6 +479,7 @@ const server = new ApolloServer({
         userManager.userOnline(user);
 
         pubsub.publish(ON_USER_ONLINE_STATUS, {
+          userId: user.id,
           onUserOnlineStatus: {
             user,
             status: "ONLINE",
@@ -491,6 +500,7 @@ const server = new ApolloServer({
         userManager.userOffline(user);
 
         pubsub.publish(ON_USER_ONLINE_STATUS, {
+          userId: user.id,
           onUserOnlineStatus: {
             user,
             status: "OFFLINE",

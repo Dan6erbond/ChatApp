@@ -41,6 +41,7 @@
         <form @submit.prevent="sendMsg" class="mt-6 pb-4" v-if="chat">
           <b-field label="Message" label-position="on-border">
             <b-input
+              @input="sendTyping"
               v-model="msgInput"
               class="w-100"
               :placeholder="'Message ' + chat.name"
@@ -52,6 +53,10 @@
             </p>
           </b-field>
         </form>
+        <div v-if="usersTyping.length" class="is-flex is-align-content-center">
+          <typing class="mr-1"></typing>
+          <span>{{ usersTyping[0].username }} is typing...</span>
+        </div>
       </section>
     </div>
   </div>
@@ -63,16 +68,22 @@ import { mapState } from "vuex";
 import GET_CHAT from "@/graphql/GetChat.gql";
 import SEND_MESSAGE from "@/graphql/SendMessage.gql";
 import SUBSCRIBE_TO_CHAT from "@/graphql/SubscribeToChat.gql";
+import SUBSCRIBE_TO_TYPING from "@/graphql/SubscribeToTyping.gql";
+import SEND_TYPING from "@/graphql/SendTyping.gql";
+import _ from "lodash";
+import Typing from "@/components/Typing.vue";
 
 export default {
   name: "Chat",
   components: {
     AccountIcon,
+    Typing,
   },
   data() {
     return {
       msgInput: "",
       chat: null,
+      usersTyping: [],
     };
   },
   computed: {
@@ -108,12 +119,27 @@ export default {
         },
       },
     },
+    $subscribe: {
+      onUserTyping: {
+        query: SUBSCRIBE_TO_TYPING,
+        variables() {
+          return {
+            chatId: this.$route.params.id,
+          };
+        },
+        result({ data }) {
+          const { user } = data.onUserTyping;
+          this.usersTyping.push(user);
+          this.removeTyping(user);
+        },
+      },
+    },
   },
   methods: {
     async sendMsg() {
       if (!this.msgInput) return;
 
-      /* const { data } = */ await this.$apollo.mutate({
+      await this.$apollo.mutate({
         mutation: SEND_MESSAGE,
         variables: {
           input: {
@@ -151,6 +177,19 @@ export default {
         },
       });
     },
+    sendTyping: _.throttle(function () {
+      this.$apollo.mutate({
+        mutation: SEND_TYPING,
+        variables: {
+          input: {
+            chatId: this.$route.params.id,
+          },
+        },
+      });
+    }, 1000),
+    removeTyping: _.debounce(function (user) {
+      this.usersTyping = this.usersTyping.filter((u) => u.id !== user.id);
+    }, 1500),
   },
 };
 </script>

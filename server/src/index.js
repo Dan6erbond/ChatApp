@@ -108,22 +108,34 @@ const typeDefs = gql`
     status: OnlineStatus!
   }
 
+  input TypingInput {
+    chatId: ID!
+  }
+
+  type UserTypingEvent {
+    user: User!
+    time: Date!
+  }
+
   type Mutation {
     register(input: RegisterInput!): RegisterPayload!
     login(input: LoginInput!): LoginPayload!
     message(input: MessageInput!): MessagePayload!
     createChat(input: CreateChatInput!): CreateChatPayload!
     addUser(input: AddUserInput!): AddUserPayload!
+    typing(input: TypingInput!): Boolean
   }
 
   type Subscription {
     onMessage(chatId: ID!): Message!
     onUserOnlineStatus: UserOnlineStatusEvent!
+    onUserTyping(chatId: ID!): UserTypingEvent!
   }
 `;
 
 const ON_MESSAGE = "ON_MESSAGE";
 const ON_USER_ONLINE_STATUS = "ON_USER_ONLINE_STATUS";
+const ON_USER_TYPING = "ON_USER_TYPING";
 
 const pubsub = new PubSub();
 
@@ -183,11 +195,12 @@ const resolvers = {
         .where("chat_id", chat.id)
         .where("user_id", "!=", user.id)
         .leftJoin("users", "chats_users.user_id", "users.id");
-      if (users.length > 1) {
-        return `${users[0].username} and ${users.length - 1} more`;
-      } else {
+      if (users.length === 1) {
         return users[0].username;
+      } else if (!users.length) {
+        return "";
       }
+      return `${users[0].username} and ${users.length - 1} more`;
     },
   },
   Message: {
@@ -358,6 +371,18 @@ const resolvers = {
         return { chat: { id, name } };
       }
     },
+    typing: async (_, { input }, { user }) => {
+      pubsub.publish(ON_USER_TYPING, {
+        onUserTyping: {
+          user,
+          time: new Date(),
+        },
+        chatId: input.chatId,
+        userId: user.id,
+      });
+
+      return true;
+    },
   },
   Subscription: {
     onMessage: {
@@ -380,6 +405,24 @@ const resolvers = {
     },
     onUserOnlineStatus: {
       subscribe: () => pubsub.asyncIterator(ON_USER_ONLINE_STATUS),
+    },
+    onUserTyping: {
+      subscribe: withFilter(
+        (_, { chatId }, { user }) => {
+          const exists = db
+            .select()
+            .from("chats_users")
+            .where("chat_id", chatId)
+            .where("user_id", user.id)
+            .first();
+
+          if (exists) {
+            return pubsub.asyncIterator(ON_USER_TYPING);
+          }
+        },
+        (payload, { chatId }, { user }) =>
+          payload.chatId === chatId && payload.userId !== user.id
+      ),
     },
   },
 };

@@ -2,16 +2,12 @@
   <div class="chat container">
     <div class="w-100">
       <section>
-        <b-navbar shadow>
+        <b-navbar shadow :mobile-burger="false" centered>
           <template slot="brand">
-            <message-icon :size="48"></message-icon>
-          </template>
-          <template slot="start">
-            <span v-if="chat" class="navbar-item ml-4 is-size-4">
+            <span v-if="chat" class="ml-4 is-size-3">
               {{ chat.name }}
             </span>
           </template>
-          <template slot="end"></template>
         </b-navbar>
       </section>
       <section>
@@ -23,8 +19,12 @@
               :key="msg.id"
             >
               <p class="pb-1">
-                <account-icon v-if="msg.author.id !== user.id"></account-icon>
-                <strong>{{ msg.author.username }}</strong>
+                <account-icon
+                  v-if="msg.author.id !== user.id"
+                  :size="16"
+                  class="mr-1"
+                ></account-icon>
+                <strong class="mr-2">{{ msg.author.username }}</strong>
                 <span class="is-size-7 has-text-weight-light">
                   {{ new Date(msg.sentAt) | datetime }}
                 </span>
@@ -59,7 +59,6 @@
 
 <script>
 import AccountIcon from "vue-material-design-icons/Account.vue";
-import MessageIcon from "vue-material-design-icons/Message.vue";
 import { mapState } from "vuex";
 import GET_CHAT from "@/graphql/GetChat.gql";
 import SEND_MESSAGE from "@/graphql/SendMessage.gql";
@@ -69,7 +68,6 @@ export default {
   name: "Chat",
   components: {
     AccountIcon,
-    MessageIcon,
   },
   data() {
     return {
@@ -161,16 +159,15 @@ export default {
 @import "@/assets/scss/_variables.scss";
 
 .chat {
-  height: 100vh;
-  margin-top: -30px;
-  padding-top: 30px;
+  height: calc(100vh - 80px);
+  padding-top: 20px;
   margin-bottom: -30px;
   display: flex;
 }
 
 .msgs {
   overflow-y: scroll;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 350px);
 
   /* width */
   &::-webkit-scrollbar {

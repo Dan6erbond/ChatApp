@@ -15,8 +15,8 @@ class JwtManager {
     try {
       return jwt.verify(token, this.jwtKey);
     } catch (e) {
-      console.log("e:", e);
-      return null;
+      console.error("e:", token, e);
+      throw e;
     }
   };
 }

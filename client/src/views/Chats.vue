@@ -1,6 +1,6 @@
 <template>
   <div class="chats container">
-    <h1 class="is-size-2">Chats</h1>
+    <h1 class="is-size-2 mb-5">Chats</h1>
     {{ $route.params.id }}
     <section>
       <div class="is-flex is-flex-direction-column">
@@ -9,7 +9,7 @@
           v-for="chat in chats"
           :key="chat.id"
         >
-          <div class="box chat is-pointer">
+          <div class="box mb-5 chat is-pointer">
             <article class="media">
               <div class="media-content">
                 <div class="content">
